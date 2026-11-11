@@ -74,7 +74,7 @@ test("launch navigates client-side to the workbench and the brand goes back", as
   expect(window.location.pathname).toBe("/app");
   expect(await screen.findByRole("region", { name: "Pipeline graph" })).toBeInTheDocument();
 
-  await userEvent.click(screen.getByTitle("Back to the Flowbench home page"));
+  await userEvent.click(within(document.querySelector(".topbar")).getByRole("link", { name: "Flowbench home" }));
   expect(window.location.pathname).toBe("/");
   expect(screen.getByRole("heading", { level: 1 })).toBeInTheDocument();
 });

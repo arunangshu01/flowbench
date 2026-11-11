@@ -36,11 +36,13 @@ export default function BootLog({ onReady, onFail }) {
         setLines((l) => [...l, { key, label, status: "run" }]);
         try {
           const value = await run();
+          const detail = describe(value); // throws on a malformed payload
           data[key] = value;
           const ms = Math.round(performance.now() - t0);
-          setLines((l) => l.map((x) => (x.key === key ? { ...x, status: "ok", detail: describe(value), ms } : x)));
+          setLines((l) => l.map((x) => (x.key === key ? { ...x, status: "ok", detail, ms } : x)));
         } catch (e) {
-          setLines((l) => l.map((x) => (x.key === key ? { ...x, status: "fail", detail: e.message } : x)));
+          const detail = e instanceof TypeError ? "unexpected response from the API" : e.message;
+          setLines((l) => l.map((x) => (x.key === key ? { ...x, status: "fail", detail } : x)));
           setState("failed");
           onFail?.(e);
           return;

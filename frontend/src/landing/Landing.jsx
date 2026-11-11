@@ -1,24 +1,19 @@
 import React, { useCallback, useState } from "react";
 import Icon from "../components/Icon";
 import CreatorMark from "../components/CreatorMark";
+import Brand from "../components/Brand";
 import BootLog from "./BootLog";
 import HeroGraph from "./HeroGraph";
 import { encodeConfig } from "../api/client";
 import { ROUTES, linkTo } from "../lib/router";
 import { fmtInt } from "../lib/format";
 import { summarizeStage } from "../lib/summary";
+import { DEMO_PRESET, REPO_URL as REPO, STEPS } from "../lib/content";
 import "./landing.css";
 
-const REPO = "https://github.com/arunangshu01/flowbench";
-const DEMO = `${ROUTES.app}?demo=strict-sensor-ingest`;
+const DEMO = `${ROUTES.app}?demo=${DEMO_PRESET}`;
 const openConfig = (config) => `${ROUTES.app}#config=${encodeConfig(config)}`;
 
-const STEPS = [
-  ["database", "Pick a source", "Choose a seeded dataset. Two of them ship with deliberately broken rows."],
-  ["shield", "Compose stages", "Chain validators and transforms with typed controls. The planner checks every field reference as you edit."],
-  ["play", "Run for real", "Rows stream through each stage in-process, with exact counts and per-stage timings."],
-  ["inspect", "Inspect & replay", "Open any node for records, rejections, profiles and lineage. Fix a rule, replay, compare."],
-];
 
 const FEATURES = [
   ["layers", "Static planning", "Schema is propagated through renames, drops, casts and joins before a single row runs. Invalid pipelines are refused."],
@@ -73,10 +68,7 @@ export default function Landing() {
   return (
     <div className="landing">
       <header className="lp-nav">
-        <a className="lp-brand" {...linkTo(ROUTES.landing)} aria-label="Flowbench home">
-          <img src="/logo.svg" width="30" height="30" alt="" />
-          <span>flowbench</span>
-        </a>
+        <Brand />
         <nav className="lp-links" aria-label="Sections">
           <a href="#how">How it works</a>
           <a href="#features">Features</a>
@@ -84,7 +76,7 @@ export default function Landing() {
           <a href="#presets">Presets</a>
           <a href={REPO} target="_blank" rel="noreferrer">GitHub</a>
         </nav>
-        <a className="btn btn-primary" {...linkTo(ROUTES.app)} aria-label="Launch workbench">
+        <a className="btn btn-primary lp-launch" {...linkTo(ROUTES.app)} aria-label="Launch workbench">
           Launch<span className="lp-hide-xs">&nbsp;workbench</span> <Icon name="open" size={14} />
         </a>
       </header>
@@ -99,10 +91,10 @@ export default function Landing() {
               lets you open every stage: what came in, what went out, what was rejected and why.
             </p>
             <div className="lp-ctas">
-              <a className="btn btn-run lp-cta" {...linkTo(DEMO)}>
+              <a className="btn btn-run btn-lg" {...linkTo(DEMO)}>
                 <Icon name="spark" size={15} /> Run the faulty-data demo
               </a>
-              <a className="btn lp-cta" {...linkTo(ROUTES.app)}>
+              <a className="btn btn-lg" {...linkTo(ROUTES.app)}>
                 Open empty workbench <Icon name="open" size={14} />
               </a>
             </div>
@@ -225,8 +217,8 @@ export default function Landing() {
           <h2>See a pipeline fail, then fix it.</h2>
           <p>The demo loads a strict ingestion pipeline onto broken sensor data and runs it.</p>
           <div className="lp-ctas">
-            <a className="btn btn-run lp-cta" {...linkTo(DEMO)}><Icon name="spark" size={15} /> Run the demo</a>
-            <a className="btn lp-cta" href={REPO} target="_blank" rel="noreferrer">View source <Icon name="open" size={14} /></a>
+            <a className="btn btn-run btn-lg" {...linkTo(DEMO)}><Icon name="spark" size={15} /> Run the demo</a>
+            <a className="btn btn-lg" href={REPO} target="_blank" rel="noreferrer">View source <Icon name="open" size={14} /></a>
           </div>
         </section>
       </main>

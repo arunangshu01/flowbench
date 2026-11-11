@@ -1,4 +1,21 @@
-# flowbench
+<p align="center">
+  <img src="frontend/public/logo.svg" width="96" height="96" alt="Flowbench logo" />
+</p>
+
+<h1 align="center">flowbench</h1>
+
+<p align="center">
+  <b>Build a pipeline. Break it. Inspect every row.</b><br />
+  <a href="https://flowbench-app.web.app">Live demo</a> ·
+  <a href="https://flowbench-app.web.app/app?demo=strict-sensor-ingest">Run the faulty-data demo</a> ·
+  <a href="docs/deploy-gcp.md">Deployment guide</a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/arunangshu01/flowbench/actions/workflows/ci.yml"><img src="https://github.com/arunangshu01/flowbench/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI" /></a>
+  <a href="https://github.com/arunangshu01/flowbench/actions/workflows/deploy.yml"><img src="https://github.com/arunangshu01/flowbench/actions/workflows/deploy.yml/badge.svg" alt="Deploy" /></a>
+  <img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT license" />
+</p>
 
 An interactive data pipeline playground. Pick a seeded dataset, assemble a
 pipeline from whitelisted validators and transforms, execute it for real, and
@@ -42,6 +59,14 @@ dataset demonstrates failure handling, fix-and-replay, and run comparison.
   original. In History, pick any two runs to compare. Stages are aligned by
   operation, so an added or removed stage doesn't misalign the rest of the
   diff.
+- **Compile to SQL.** The sink node's SQL tab shows the pipeline compiled to
+  DuckDB SQL, one CTE per stage, plus setup SQL (typed table + `COPY` from the
+  dataset CSV, lookups inlined as `VALUES`). Flowbench never executes this SQL;
+  tests run it in DuckDB and check it returns the same rows as the Python
+  engine for representative pipelines and presets. Where semantics differ
+  (e.g. `type_check` uses `TRY_CAST`), the UI shows a note.
+- **Data out.** Every dataset downloads as CSV, and pipelines export/import as
+  JSON files (imports go through the same validation as share links).
 - **Dead-letter export.** `rejects.csv` per run (stage, row, lineage id,
   message, record), properly CSV-escaped.
 - **Presets & sharing.** Six named pipelines across domains. The current pipeline is
@@ -97,7 +122,7 @@ Requires Python 3.11+ and Node 20+.
 # backend → http://localhost:8000 (OpenAPI docs at /flowbench/api/v1/docs)
 cd backend
 python3 -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
+pip install -r requirements-dev.txt   # app deps + DuckDB for the SQL tests
 uvicorn app.main:app --reload --port 8000
 
 # frontend → http://localhost:5173 (proxies /flowbench/api to :8000)
@@ -115,7 +140,7 @@ the scheduler thread), `FLOWBENCH_MAX_CONCURRENT_RUNS`,
 ## Tests
 
 ```bash
-cd backend && python -m pytest tests -q   # engine, planner, params, API, scheduler, regressions
+cd backend && python -m pytest tests -q   # engine, planner, API, scheduler, datasets, SQL-vs-engine, deploy files
 cd frontend && npm test                    # reducer, editors, inspector, lineage, app flows
 cd frontend && npm run build
 ```
@@ -174,6 +199,8 @@ pattern as the other portfolio services. Paths below are relative to it.
 | `POST /runs/{id}/replay` | re-run the stored config, or an override |
 | `GET /compare?a=&b=` | operation-aligned run diff |
 | `GET /runs/{id}/rejects.csv` | dead-letter export |
+| `POST /compile/sql` | pipeline as DuckDB SQL + setup SQL + semantic notes |
+| `GET /datasets/{id}/download.csv` | full dataset as CSV |
 | `POST/GET/DELETE /schedules` | interval re-runs |
 
 ## Known limitations

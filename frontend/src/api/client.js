@@ -21,7 +21,14 @@ async function req(path, options = {}) {
   } catch {
     throw new ApiError(0, "Cannot reach the Flowbench API", null);
   }
-  const body = await res.json().catch(() => ({}));
+  let body;
+  try {
+    body = await res.json();
+  } catch {
+    // e.g. an HTML page from a misconfigured proxy: never treat it as data
+    if (res.ok) throw new ApiError(res.status, "Unexpected (non-JSON) response from the API", null);
+    body = {};
+  }
   if (!res.ok) {
     const detail = body.detail;
     const message = typeof detail === "string"
@@ -48,6 +55,8 @@ export const api = {
   replay: (id, config = null) => post(`/runs/${encodeURIComponent(id)}/replay`, { config }),
   compare: (a, b) => req(`/compare?a=${encodeURIComponent(a)}&b=${encodeURIComponent(b)}`),
   rejectsUrl: (id) => `${BASE}/runs/${encodeURIComponent(id)}/rejects.csv`,
+  datasetCsvUrl: (id) => `${BASE}/datasets/${encodeURIComponent(id)}/download.csv`,
+  compileSql: (config) => post("/compile/sql", { dataset_id: config.dataset_id, stages: config.stages }),
   schedules: () => req("/schedules"),
   createSchedule: (config, interval_s) => post("/schedules", { config, interval_s }),
   deleteSchedule: (id) => req(`/schedules/${encodeURIComponent(id)}`, { method: "DELETE" }),
@@ -65,21 +74,38 @@ export function encodeConfig(config) {
   }
 }
 
+/** Validate an untrusted object (share link, imported file) into a config. */
+export function sanitizeConfig(config) {
+  if (!config || typeof config.dataset_id !== "string" || !Array.isArray(config.stages)) return null;
+  return {
+    dataset_id: config.dataset_id,
+    output_format: config.output_format === "csv" ? "csv" : "records",
+    stages: config.stages
+      .filter((s) => s && typeof s.op === "string" && (s.kind === "validator" || s.kind === "transform"))
+      .slice(0, 20)
+      .map((s) => ({ kind: s.kind, op: s.op, params: s.params && typeof s.params === "object" && !Array.isArray(s.params) ? s.params : {} })),
+  };
+}
+
 export function decodeConfig(text) {
   try {
     const b64 = text.replace(/-/g, "+").replace(/_/g, "/");
     const bin = atob(b64 + "===".slice((b64.length + 3) % 4));
     const bytes = Uint8Array.from(bin, (c) => c.charCodeAt(0));
-    const config = JSON.parse(new TextDecoder().decode(bytes));
-    if (!config || typeof config.dataset_id !== "string" || !Array.isArray(config.stages)) return null;
-    return {
-      dataset_id: config.dataset_id,
-      output_format: config.output_format === "csv" ? "csv" : "records",
-      stages: config.stages
-        .filter((s) => s && typeof s.op === "string" && (s.kind === "validator" || s.kind === "transform"))
-        .map((s) => ({ kind: s.kind, op: s.op, params: s.params && typeof s.params === "object" ? s.params : {} })),
-    };
+    return sanitizeConfig(JSON.parse(new TextDecoder().decode(bytes)));
   } catch {
     return null;
   }
+}
+
+/** Trigger a browser download of text content. */
+export function downloadText(filename, text, type = "text/plain") {
+  const url = URL.createObjectURL(new Blob([text], { type }));
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 0);
 }

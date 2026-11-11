@@ -54,10 +54,12 @@ def _apply(op: str, params: dict, schema: dict[str, str],
     elif op in ("upper", "lower", "regex") and schema.get(params["field"]) != "string":
         warn.append(f"'{params['field']}' is {schema.get(params['field'])}, not string")
     elif op == "rename":
-        for old, new in params["mapping"].items():
-            if new in out and new != old:
+        mapping = params["mapping"]
+        for old, new in mapping.items():
+            if new in out and new != old and new not in mapping:
                 warn.append(f"renaming '{old}' overwrites existing '{new}'")
-            out[new] = out.pop(old)
+        targets = {mapping[k] for k in out if k in mapping}
+        out = {mapping.get(k, k): t for k, t in out.items() if k in mapping or k not in targets}
     elif op == "cast":
         out[params["field"]] = params["to"]
     elif op == "derive_column":

@@ -224,3 +224,6 @@ backend/flowbench.db*
 frontend/node_modules/
 # frontend source helpers (the Python template above ignores lib/)
 !frontend/src/lib/
+
+# vite cache
+frontend/.vite/

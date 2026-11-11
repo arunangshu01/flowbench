@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import Icon from "./Icon";
-import { ROUTES, linkTo } from "../lib/router";
+import Brand from "./Brand";
 
 const VIEWS = [
   ["build", "Build", "build"],
@@ -45,13 +45,7 @@ export default function TopBar({ view, onView, presets, onPreset, onShare, onRun
   const blocked = planState === "error";
   return (
     <header className="topbar">
-      <a className="brand" {...linkTo(ROUTES.landing)} title="Back to the Flowbench home page">
-        <img src="/logo.svg" width="30" height="30" alt="" />
-        <div className="brand-text">
-          <span className="brand-name">flowbench</span>
-          <span className="brand-tag hide-sm">data pipeline playground</span>
-        </div>
-      </a>
+      <Brand />
 
       <nav className="view-tabs" aria-label="Views">
         {VIEWS.map(([id, label, icon]) => (

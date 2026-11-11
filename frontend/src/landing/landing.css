@@ -2,34 +2,21 @@
 
 .landing {
   min-height: 100vh;
-  background:
-    radial-gradient(1000px 420px at 78% -120px, rgba(77, 163, 255, 0.13), transparent 70%),
-    radial-gradient(800px 380px at 8% -60px, rgba(124, 92, 255, 0.11), transparent 70%),
-    linear-gradient(rgba(140, 170, 210, 0.045) 1px, transparent 1px) 0 0 / 48px 48px,
-    linear-gradient(90deg, rgba(140, 170, 210, 0.045) 1px, transparent 1px) 0 0 / 48px 48px,
-    var(--bg);
-  background-attachment: scroll;
+  background: var(--page-bg);
   color: var(--text);
 }
 .landing main { max-width: 1200px; margin: 0 auto; padding: 0 28px; }
 .landing h1, .landing h2, .landing h3 { letter-spacing: -0.015em; }
 
-/* ---------- nav ---------- */
+/* ---------- nav: same bar as the workbench top bar ---------- */
 .lp-nav {
   position: sticky; top: 0; z-index: 30;
-  display: flex; align-items: center; gap: 28px;
-  max-width: 1200px; margin: 0 auto; padding: 14px 28px;
+  display: flex; align-items: center; gap: 22px;
+  height: var(--topbar-h); padding: 0 18px;
+  border-bottom: 1px solid var(--line);
+  background: color-mix(in srgb, var(--s1) 92%, transparent);
+  backdrop-filter: blur(10px);
 }
-.lp-nav::before {
-  content: ""; position: absolute; inset: 0 calc(50% - 50vw); z-index: -1;
-  background: color-mix(in srgb, var(--bg) 78%, transparent);
-  backdrop-filter: blur(12px); border-bottom: 1px solid var(--line);
-}
-.lp-brand {
-  display: inline-flex; align-items: center; gap: 10px;
-  color: var(--text); text-decoration: none; font: 700 17px var(--mono);
-}
-.lp-brand img { filter: drop-shadow(0 2px 8px rgba(77, 163, 255, 0.4)); }
 .lp-links { display: flex; gap: 22px; margin-left: auto; }
 .lp-links a { color: var(--muted); text-decoration: none; font-size: 13.5px; font-weight: 500; }
 .lp-links a:hover { color: var(--text); }
@@ -61,7 +48,6 @@
 }
 .lp-lede { font-size: 17px; line-height: 1.6; color: var(--text-2); max-width: 54ch; }
 .lp-ctas { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 30px; }
-.lp-cta { height: 46px; padding: 0 20px; font-size: 14px; border-radius: 10px; }
 .lp-checks {
   list-style: none; padding: 0; margin: 26px 0 0;
   display: flex; flex-wrap: wrap; gap: 10px 22px; color: var(--muted); font-size: 13px;
@@ -73,7 +59,7 @@
 
 /* ---------- boot terminal ---------- */
 .boot {
-  border: 1px solid var(--line-2); border-radius: 14px; overflow: hidden;
+  border: 1px solid var(--line-2); border-radius: var(--r-lg); overflow: hidden;
   background: linear-gradient(180deg, #0d121a, #090d13);
   box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.02) inset;
 }
@@ -116,7 +102,7 @@
 
 /* ---------- hero graph ---------- */
 .lp-graph-card {
-  border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px 4px;
+  border: 1px solid var(--line); border-radius: var(--r-lg); padding: 12px 14px 4px;
   background:
     radial-gradient(circle at 1px 1px, rgba(140, 170, 210, 0.13) 1px, transparent 0) 0 0 / 18px 18px,
     rgba(10, 14, 20, 0.85);
@@ -138,7 +124,7 @@
 /* ---------- live stats ---------- */
 .lp-stats {
   display: grid; grid-template-columns: repeat(6, minmax(0, 1fr));
-  border: 1px solid var(--line); border-radius: 14px; overflow: hidden;
+  border: 1px solid var(--line); border-radius: var(--r-lg); overflow: hidden;
   background: rgba(16, 21, 29, 0.7);
 }
 .lp-stat { display: flex; flex-direction: column; gap: 4px; padding: 18px 20px; }
@@ -160,8 +146,8 @@
 
 .lp-steps { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; counter-reset: step; }
 .lp-steps li {
-  position: relative; padding: 22px; border: 1px solid var(--line); border-radius: 14px;
-  background: linear-gradient(180deg, rgba(22, 29, 39, 0.85), rgba(16, 21, 29, 0.85));
+  position: relative; padding: 22px; border: 1px solid var(--line); border-radius: var(--r-lg);
+  background: var(--surface);
 }
 .lp-steps li:not(:last-child)::after {
   content: ""; position: absolute; top: 40px; right: -17px; width: 18px; height: 2px;
@@ -176,7 +162,7 @@
 .lp-steps h3, .lp-feature h3 { font-size: 15.5px; font-weight: 650; margin-bottom: 8px; }
 .lp-steps p, .lp-feature p { font-size: 13.5px; line-height: 1.6; color: var(--muted); }
 
-.lp-features { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+.lp-features { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--r-lg); overflow: hidden; }
 .lp-feature { padding: 24px 22px; background: rgba(13, 17, 24, 0.96); transition: background 0.2s; }
 .lp-feature:hover { background: rgba(20, 27, 37, 0.98); }
 .lp-feature-icon {
@@ -187,8 +173,8 @@
 .lp-datasets, .lp-presets { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
 .lp-dataset, .lp-preset {
   display: flex; flex-direction: column; gap: 10px; padding: 20px;
-  border: 1px solid var(--line); border-radius: 14px; color: inherit; text-decoration: none;
-  background: linear-gradient(180deg, rgba(22, 29, 39, 0.85), rgba(16, 21, 29, 0.85));
+  border: 1px solid var(--line); border-radius: var(--r-lg); color: inherit; text-decoration: none;
+  background: var(--surface);
   transition: border-color 0.18s, transform 0.18s, box-shadow 0.18s;
 }
 .lp-dataset:hover, .lp-preset:hover {
@@ -218,18 +204,18 @@
 .lp-chain li.kind-transform { border-color: rgba(77, 163, 255, 0.35); color: var(--k-transform); }
 
 .lp-stack { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; align-items: stretch; }
-.lp-stack-list { margin: 0; display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+.lp-stack-list { margin: 0; display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: var(--r-lg); overflow: hidden; }
 .lp-stack-list div { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 16px; padding: 18px 20px; background: rgba(13, 17, 24, 0.9); }
 .lp-stack-list div + div { border-top: 1px solid var(--line); }
 .lp-stack-list dt { font: 600 11px var(--mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--faint); padding-top: 2px; }
 .lp-stack-list dd { margin: 0; font-size: 14px; line-height: 1.55; color: var(--text-2); }
 .lp-code {
-  margin: 0; padding: 20px 22px; overflow: auto; border-radius: 14px; border: 1px solid var(--line);
+  margin: 0; padding: 20px 22px; overflow: auto; border-radius: var(--r-lg); border: 1px solid var(--line);
   background: #090d13; font: 12.5px/1.65 var(--mono); color: #a9c4e4;
 }
 
 .lp-final {
-  margin: 110px 0 0; padding: 56px 32px; text-align: center; border-radius: 18px;
+  margin: 110px 0 0; padding: 56px 32px; text-align: center; border-radius: var(--r-xl);
   border: 1px solid var(--line-2);
   background:
     radial-gradient(600px 220px at 50% 0, rgba(77, 163, 255, 0.16), transparent 70%),
@@ -263,7 +249,7 @@
 
 @media (max-width: 760px) {
   .landing main { padding: 0 16px; }
-  .lp-nav { padding: 12px 16px; gap: 12px; }
+  .lp-nav { padding: 0 14px; gap: 12px; }
   .lp-links { display: none; }
   .lp-nav .btn { margin-left: auto; }
   .lp-hero { padding-top: 32px; }
@@ -279,11 +265,10 @@
 
 @media (max-width: 380px) {
   .lp-hide-xs { display: none; }
-  .lp-brand span { font-size: 16px; }
 }
 
 @media (max-width: 560px) {
-  .lp-cta { width: 100%; }
+  .lp-ctas .btn { width: 100%; }
   .lp-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .lp-stat:nth-child(n) { border-left: 0; border-top: 1px solid var(--line); }
   .lp-stat:nth-child(even) { border-left: 1px solid var(--line); }
