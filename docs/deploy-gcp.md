@@ -243,7 +243,6 @@ schedule.
 - Normal rollback: revert via PR, pass CI, merge, approve Deploy.
 - Emergency rollback: restore a known-good Cloud Run revision and Firebase
   Hosting release in their consoles. The next deployment supersedes it.
-- Images accumulate in Artifact Registry; review a cleanup policy in dry-run
-  mode before enabling any deletion.
-- Optional, separately approved: uptime check + email alert on
-  `https://flowbench-app.web.app/flowbench/api/v1/health`, as in doppel.
+- Monitoring (configured): uptime check + email alert on
+  `https://flowbench-app.web.app/flowbench/api/v1/health` and a `flowbench operations` dashboard, mirroring doppel. See the README table.
+- Image cleanup policy (configured in dry-run): keep 10 most recent, delete older than 30 days.
