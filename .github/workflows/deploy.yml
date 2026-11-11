@@ -1,0 +1,150 @@
+name: Deploy
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+env:
+  PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+  REGION: asia-south1
+  SERVICE: flowbench-api
+  API_PREFIX: /flowbench/api/v1
+  COMMIT: ${{ github.event.workflow_run.head_sha }}
+
+jobs:
+  deploy:
+    name: Deploy to Google Cloud
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'main' &&
+      github.event.workflow_run.head_repository.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    environment:
+      name: production
+      url: https://flowbench-app.web.app
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Check deployment variables
+        env:
+          GCP_WIF_PROVIDER: ${{ vars.GCP_WIF_PROVIDER }}
+          GCP_DEPLOY_SA: ${{ vars.GCP_DEPLOY_SA }}
+        run: |
+          set -euo pipefail
+          for name in PROJECT_ID GCP_WIF_PROVIDER GCP_DEPLOY_SA; do
+            test -n "${!name}" || { echo "::error::Missing Actions variable $name; see docs/deploy-gcp.md."; exit 1; }
+          done
+          case "$PROJECT_ID" in
+            ap-portfolio-241026|mahakal-ai-230925|doppel-101126) echo '::error::Use a separate flowbench project.'; exit 1 ;;
+          esac
+          test "$GCP_DEPLOY_SA" = "flowbench-deployer@${PROJECT_ID}.iam.gserviceaccount.com"
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ env.COMMIT }}
+          persist-credentials: false
+      - name: Reject stale deployment and unconfigured Hosting site
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          HEAD_SHA=$(gh api "repos/${GITHUB_REPOSITORY}/commits/main" --jq .sha)
+          test "$COMMIT" = "$HEAD_SHA" || { echo 'Refusing to deploy an outdated main commit.'; exit 1; }
+          node -e "const s=require('./firebase.json').hosting.site; if (!/^[a-z0-9][a-z0-9-]+$/.test(s)) throw Error('Set the confirmed flowbench Hosting site ID in firebase.json');"
+      - uses: actions/setup-python@v7.1.0
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Verify backend
+        working-directory: backend
+        run: |
+          python -m pip install -r requirements.txt
+          python -m pytest -q
+      - name: Verify and build frontend
+        working-directory: frontend
+        run: |
+          npm ci
+          npm test -- --ci
+          npm run build
+      - name: Install Firebase CLI
+        run: npm install --global firebase-tools@15.34.0
+      - uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOY_SA }}
+      - uses: google-github-actions/setup-gcloud@v3
+      - name: Build and push API image
+        run: |
+          set -euo pipefail
+          IMAGE="${REGION}-docker.pkg.dev/${PROJECT_ID}/flowbench/api:${COMMIT}"
+          gcloud auth configure-docker "${REGION}-docker.pkg.dev" --quiet
+          docker build --platform linux/amd64 -t "$IMAGE" backend
+          docker push "$IMAGE"
+          echo "IMAGE=$IMAGE" >> "$GITHUB_ENV"
+      - name: Recheck main before deployment
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          HEAD_SHA=$(gh api "repos/${GITHUB_REPOSITORY}/commits/main" --jq .sha)
+          test "$COMMIT" = "$HEAD_SHA" || { echo 'Main changed during build; wait for the newer deployment.'; exit 1; }
+      # One always-on instance: the in-process scheduler needs CPU between
+      # requests (--no-cpu-throttling) and a warm instance (min 1). Max 1 keeps
+      # the SQLite history, schedules and rate limits consistent.
+      - name: Deploy API
+        run: |
+          gcloud run deploy "$SERVICE" \
+            --project "$PROJECT_ID" \
+            --image "$IMAGE" \
+            --region "$REGION" \
+            --service-account "flowbench-run@${PROJECT_ID}.iam.gserviceaccount.com" \
+            --allow-unauthenticated \
+            --ingress all \
+            --port 8080 \
+            --cpu 1 \
+            --memory 512Mi \
+            --no-cpu-throttling \
+            --concurrency 20 \
+            --min-instances 1 \
+            --max-instances 1 \
+            --max 1 \
+            --timeout 60 \
+            --env-vars-file deploy/cloud-run.env.yaml \
+            --quiet
+      - name: Check API health
+        run: |
+          API_ORIGIN=$(gcloud run services describe "$SERVICE" --project "$PROJECT_ID" --region "$REGION" --format='value(status.url)')
+          curl --fail --silent --show-error --retry 5 --retry-all-errors --max-time 60 "$API_ORIGIN$API_PREFIX/health" | python -c 'import json,sys; assert json.load(sys.stdin)=={"status":"ok"}'
+      - name: Deploy frontend
+        run: firebase deploy --only hosting --project "$PROJECT_ID" --non-interactive
+      - name: Smoke test Hosting, rewrite, docs, and a real run
+        run: |
+          set -euo pipefail
+          SITE=$(node -p "require('./firebase.json').hosting.site")
+          ORIGIN="https://${SITE}.web.app"
+          get() { curl --fail --silent --show-error --retry 5 --retry-all-errors --max-time 60 "$@"; }
+          get "$ORIGIN/" > /dev/null
+          get "$ORIGIN/app" > /dev/null
+          get "$ORIGIN$API_PREFIX/health" | python -c 'import json,sys; assert json.load(sys.stdin)=={"status":"ok"}'
+          get "$ORIGIN$API_PREFIX/openapi.json" | python -c 'import json,sys,os; p=os.environ["API_PREFIX"]; s=json.load(sys.stdin); assert s["paths"] and all(k.startswith(p) for k in s["paths"])'
+          get "$ORIGIN$API_PREFIX/docs" > /dev/null
+          get "$ORIGIN$API_PREFIX/datasets" | python -c 'import json,sys; assert len(json.load(sys.stdin)) >= 11'
+          get -X POST -H 'Content-Type: application/json' \
+            -d '{"config":{"dataset_id":"iot-sensors-faulty","stages":[{"kind":"validator","op":"not_null","params":{"fields":["temperature_c"]}}],"output_format":"records"}}' \
+            "$ORIGIN$API_PREFIX/runs" | python -c 'import json,sys; r=json.load(sys.stdin); assert r["status"]=="success" and r["rows_in"]==2000 and r["rejected_total"]>0, r'

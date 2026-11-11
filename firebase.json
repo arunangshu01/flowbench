@@ -1,0 +1,29 @@
+{
+  "hosting": {
+    "site": "flowbench-app",
+    "public": "frontend/dist",
+    "ignore": ["**/.*"],
+    "rewrites": [
+      {
+        "source": "/flowbench/api/**",
+        "run": { "serviceId": "flowbench-api", "region": "asia-south1" }
+      },
+      { "source": "**", "destination": "/index.html" }
+    ],
+    "headers": [
+      { "source": "/assets/**", "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }] },
+      { "source": "**/*.html", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] },
+      { "source": "/", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] },
+      { "source": "/app", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] },
+      { "source": "/logo.svg", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] },
+      { "source": "/flowbench/api/**", "headers": [{ "key": "Cache-Control", "value": "no-store" }] },
+      {
+        "source": "**",
+        "headers": [
+          { "key": "X-Content-Type-Options", "value": "nosniff" },
+          { "key": "Referrer-Policy", "value": "no-referrer" }
+        ]
+      }
+    ]
+  }
+}
