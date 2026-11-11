@@ -243,6 +243,22 @@ Step-by-step manual setup: [docs/deploy-gcp.md](docs/deploy-gcp.md).
 | OIDC subject | `repo:arunangshu01@22813216/flowbench@1453682436:environment:production` |
 | GitHub | `production` environment (main only, reviewer `arunangshu01`, no admin bypass); `Protect main` ruleset (PR, resolved conversations, up-to-date branch, both CI checks, no force push/deletion, no bypass) |
 
+### Monitoring and operational safeguards
+
+| Resource | Configuration |
+| --- | --- |
+| `flowbench API health` uptime check | HTTPS `flowbench-app.web.app/flowbench/api/v1/health` every 5 minutes from Asia Pacific, Europe and Iowa; 30 s timeout; valid certificate, HTTP 200 and JSON `status` = `ok` required |
+| `flowbench API health failure` alert | at least two regions failing for 10 minutes; emails on open and close |
+| `flowbench health alerts` channel | email to `arunangshu01@gmail.com` |
+| `flowbench operations` dashboard | probe pass fraction, requests/sec by response class, p95 latency, CPU utilization, instance count (built-in metrics only) |
+| Artifact Registry cleanup | keep the 10 most recent images, delete images older than 30 days; **dry-run mode**, so nothing is deleted until it is switched off |
+| Dependabot | security alerts and automatic security-fix PRs |
+
+Missing telemetry alone does not trigger the alert, and probes add a small
+amount of traffic and logs. To enable real image cleanup after reviewing the
+dry-run results (Artifact Registry > flowbench > Cleanup policies), run
+`gcloud artifacts repositories set-cleanup-policies flowbench --location=asia-south1 --project=flowbench-111126 --policy=POLICY.json --no-dry-run`.
+
 Billing and a project-scoped budget were configured manually. No secrets or
 service-account keys exist. Each deployment still waits for the production
 approval in GitHub Actions.
