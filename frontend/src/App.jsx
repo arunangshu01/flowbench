@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
-import { api, decodeConfig, encodeConfig } from "./api/client";
+import { api, decodeConfig, downloadText, encodeConfig, sanitizeConfig } from "./api/client";
 import { initialPipeline, pipelineReducer } from "./state/pipeline";
 import { shortId, stableStringify, fmtInt } from "./lib/format";
 import TopBar from "./components/TopBar";
@@ -13,10 +13,10 @@ import SchedulesView from "./components/SchedulesView";
 import StatusBar from "./components/StatusBar";
 import CreatorMark from "./components/CreatorMark";
 import Toasts from "./components/Toasts";
+import { DEMO_PRESET } from "./lib/content";
 import "./styles.css";
 
 const EMPTY_REGISTRY = { validators: [], transforms: [], fn_arity: {} };
-const DEMO_PRESET = "strict-sensor-ingest";
 
 function loadInitialConfig() {
   const m = window.location.hash.match(/^#config=(.+)$/);
@@ -198,6 +198,29 @@ export default function App() {
     runPreset(demo);
   }, [presets, runPreset]);
 
+  const exportPipeline = useCallback(() => {
+    const doc = { flowbench: 1, exported_at: new Date().toISOString(), config };
+    downloadText(`flowbench-pipeline-${config.dataset_id}.json`, `${JSON.stringify(doc, null, 2)}\n`, "application/json");
+  }, [config]);
+
+  const importPipeline = useCallback(async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    try {
+      if (file.size > 64 * 1024) throw new Error("file is larger than 64 KB");
+      const parsed = JSON.parse(await file.text());
+      const cfg = sanitizeConfig(parsed?.config ?? parsed);
+      if (!cfg) throw new Error("not a Flowbench pipeline");
+      dispatch({ type: "load_config", config: cfg });
+      setReport(null);
+      setSelected(0);
+      toast("success", `Imported ${file.name}`, `${cfg.stages.length} stage(s) on ${cfg.dataset_id}. It is checked before it can run.`);
+    } catch (err) {
+      toast("error", "Could not import pipeline", err.message);
+    }
+  }, [toast]);
+
   const share = useCallback(async () => {
     try {
       await navigator.clipboard.writeText(window.location.href);
@@ -260,9 +283,16 @@ export default function App() {
         <aside className="rail-pane" aria-label="Pipeline builder">
           <div className="pane-head">
             <span className="kicker">pipeline</span>
-            {config.stages.length > 0 && (
-              <button type="button" className="link-btn" onClick={() => dispatch({ type: "clear_stages" })}>clear stages</button>
-            )}
+            <div className="pane-actions">
+              <button type="button" className="link-btn" onClick={exportPipeline} title="Download this pipeline as JSON">export</button>
+              <label className="link-btn" title="Load a pipeline JSON file">
+                import
+                <input type="file" accept="application/json,.json" className="sr-only" onChange={importPipeline} />
+              </label>
+              {config.stages.length > 0 && (
+                <button type="button" className="link-btn" onClick={() => dispatch({ type: "clear_stages" })}>clear</button>
+              )}
+            </div>
           </div>
           <PipelineRail config={config} dispatch={dispatch} datasets={datasets} registry={registry}
             plan={plan} freshReport={fresh ? report : null} selected={selected}

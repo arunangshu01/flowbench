@@ -3,6 +3,8 @@ import Icon from "./Icon";
 import RecordTable from "./RecordTable";
 import ProfileTable from "./ProfileTable";
 import SchemaDiff from "./SchemaDiff";
+import SqlView from "./SqlView";
+import { api } from "../api/client";
 import { traceRid } from "../lib/lineage";
 import { fmtInt, fmtMs, fmtPct } from "../lib/format";
 import { summarizeStage } from "../lib/summary";
@@ -72,8 +74,8 @@ export default function NodeInspector({ config, plan, report, selected, registry
   const tabs = useMemo(() => {
     if (isSink) {
       return report
-        ? [["records", "Output"], ["schema", "Schema evolution"], ["profile", "Profile"], ["warnings", "Warnings", report.warnings?.length ?? 0]]
-        : [["schema", "Schema evolution"]];
+        ? [["records", "Output"], ["schema", "Schema evolution"], ["profile", "Profile"], ["sql", "SQL"], ["warnings", "Warnings", report.warnings?.length ?? 0]]
+        : [["schema", "Schema evolution"], ["sql", "SQL"]];
     }
     if (isSource) return report ? [["records", "Rows read"], ["profile", "Profile"], ["schema", "Schema"]] : [["schema", "Schema"]];
     if (!runStage) return [["schema", "Schema"]];
@@ -103,6 +105,8 @@ export default function NodeInspector({ config, plan, report, selected, registry
           beforeLabel={isSink ? "source" : "in"} afterLabel={isSink ? "output" : "out"} />;
   } else if (tab === "profile") {
     body = <ProfileTable profile={isSink ? report?.output_profile : runStage?.profile} />;
+  } else if (tab === "sql") {
+    body = <SqlView config={config} planValid={!!plan?.valid} />;
   } else if (tab === "warnings") {
     body = report.warnings?.length
       ? <ul className="issues">{report.warnings.map((w, i) => (
@@ -154,6 +158,11 @@ export default function NodeInspector({ config, plan, report, selected, registry
           <h2 className="mono">{title}</h2>
           {stageCfg && <p className="mono muted">{summarizeStage(stageCfg)}</p>}
           {opSpec && <p className="muted">{opSpec.description}</p>}
+          {isSource && (
+            <a className="btn btn-ghost btn-sm inspector-link" href={api.datasetCsvUrl(config.dataset_id)} download>
+              <Icon name="download" size={14} /> Download {config.dataset_id}.csv
+            </a>
+          )}
         </div>
         {runStage && !isSource && (
           <div className="stats">

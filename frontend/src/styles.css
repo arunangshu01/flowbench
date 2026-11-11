@@ -40,6 +40,15 @@
   --r-sm: 6px;
   --r: 8px;
   --r-lg: 12px;
+  --r-xl: 16px;
+  /* one card surface and one page background for every page */
+  --surface: linear-gradient(180deg, color-mix(in srgb, var(--s2) 100%, #fff 1.5%), var(--s2));
+  --page-bg:
+    radial-gradient(1000px 360px at 75% -120px, rgba(77, 163, 255, 0.11), transparent 70%),
+    radial-gradient(800px 320px at 10% -80px, rgba(124, 92, 255, 0.08), transparent 70%),
+    linear-gradient(rgba(140, 170, 210, 0.04) 1px, transparent 1px) 0 0 / 48px 48px,
+    linear-gradient(90deg, rgba(140, 170, 210, 0.04) 1px, transparent 1px) 0 0 / 48px 48px,
+    var(--bg);
   --gap: 20px;
   --panel-pad: 22px;
   --shadow: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 10px 30px rgba(0, 0, 0, 0.35);
@@ -97,10 +106,7 @@ a { color: var(--accent); }
   grid-template-rows: var(--topbar-h) minmax(0, 1fr) var(--status-h);
   height: 100vh;
   height: 100dvh;
-  background:
-    radial-gradient(900px 260px at 72% -60px, rgba(77, 163, 255, 0.08), transparent 70%),
-    radial-gradient(700px 220px at 20% -80px, rgba(124, 92, 255, 0.06), transparent 70%),
-    var(--bg);
+  background: var(--page-bg);
 }
 .shell {
   display: grid;
@@ -121,6 +127,8 @@ a { color: var(--accent); }
   padding: 0 2px 14px;
 }
 .only-mobile, .mobile-only, .creator-mark.is-card { display: none; }
+.pane-actions { display: flex; align-items: center; gap: 14px; }
+.pane-actions label.link-btn { display: inline-flex; align-items: center; }
 
 /* ---------- top bar ---------- */
 .topbar {
@@ -183,6 +191,7 @@ a { color: var(--accent); }
   font: 600 10.5px var(--mono); padding: 2px 5px; border-radius: 4px;
   background: rgba(0, 0, 0, 0.18); color: rgba(4, 18, 12, 0.85);
 }
+.btn-lg { height: 44px; padding: 0 20px; font-size: 14px; }
 .btn-sm { height: 30px; padding: 0 11px; font-size: 12.5px; }
 .btn-xs { height: 26px; padding: 0 8px; font-size: 12px; gap: 5px; }
 .btn-block { width: 100%; height: 42px; }
@@ -344,7 +353,7 @@ select.chip-add { background-position: right 8px center; padding-right: 26px; co
 
 /* ---------- panels ---------- */
 .panel {
-  background: linear-gradient(180deg, color-mix(in srgb, var(--s2) 100%, #fff 1.5%), var(--s2));
+  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--r-lg);
   padding: var(--panel-pad);
@@ -668,7 +677,7 @@ select.control optgroup { background: var(--s1); color: var(--faint); font-style
 /* ---------- empty state ---------- */
 .empty-state { background: linear-gradient(135deg, rgba(77, 163, 255, 0.07), rgba(124, 92, 255, 0.05) 60%, transparent), var(--s2); }
 .empty-head h2 { font-size: 19px; font-weight: 600; margin-top: 6px; letter-spacing: -0.01em; }
-.steps { list-style: none; padding: 0; margin: 20px 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.steps { list-style: none; padding: 0; margin: 20px 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
 .steps li { display: flex; gap: 12px; padding: 14px; border: 1px solid var(--line); border-radius: var(--r-lg); background: rgba(10, 14, 20, 0.6); }
 .steps h3 { font-size: 13.5px; font-weight: 600; margin-bottom: 4px; }
 .steps p { font-size: 12.5px; color: var(--muted); line-height: 1.5; }
@@ -797,7 +806,7 @@ select.control optgroup { background: var(--s1); color: var(--faint); font-style
 }
 
 @media (max-width: 1080px) {
-  .steps { grid-template-columns: 1fr; }
+  .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .menu-right { width: 320px; }
 }
 
@@ -848,6 +857,7 @@ select.control optgroup { background: var(--s1); color: var(--faint); font-style
   .stat { padding: 8px 10px; }
   .stat-value { font-size: 14px; }
   .schema-diff { grid-template-columns: 1fr; }
+  .steps { grid-template-columns: 1fr; }
   .cmp-sides { grid-template-columns: 1fr; }
   .cmp-vs { justify-self: center; }
   .schedule-item { grid-template-columns: 1fr; gap: 10px; }
@@ -889,3 +899,14 @@ select.control optgroup { background: var(--s1); color: var(--faint); font-style
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* ---------- SQL view ---------- */
+.inspector-link { align-self: flex-start; margin-top: 6px; padding-left: 8px; }
+.sql-view { display: flex; flex-direction: column; gap: 12px; }
+.sql-toolbar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.sql-hint { font-size: 12px; flex: 1 1 260px; }
+.sql-actions { display: flex; gap: 4px; flex-wrap: wrap; }
+.sql-code { max-height: 520px; color: #a9c4e4; }
+.sql-setup summary { cursor: pointer; color: var(--muted); font-size: 12.5px; padding: 6px 0; }
+.sql-setup summary:hover { color: var(--text); }
+.sql-setup .code-block { margin-top: 8px; }

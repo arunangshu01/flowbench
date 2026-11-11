@@ -1,0 +1,3 @@
+-r requirements.txt
+# dev/test only: verifies compiled SQL against the engine; not in the image
+duckdb==1.3.2

@@ -97,10 +97,15 @@ def validate_allowed_values(row: dict, field: str, values: list[Any], **_: Any) 
 
 
 def transform_rename(row: dict, mapping: dict[str, str], **_: Any) -> dict:
-    out = dict(row)
-    for old, new in mapping.items():
-        if old in out:
-            out[new] = out.pop(old)
+    """Rename in place: the renamed column keeps its position. If the new
+    name already exists elsewhere, that column is replaced."""
+    targets = {mapping[k] for k in row if k in mapping}
+    out: dict = {}
+    for k, v in row.items():
+        if k in mapping:
+            out[mapping[k]] = v
+        elif k not in targets:
+            out[k] = v
     return out
 
 

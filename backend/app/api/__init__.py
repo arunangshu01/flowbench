@@ -13,6 +13,7 @@ from pydantic import BaseModel, Field
 
 from app import __version__
 from app.core import LIMITS, PipelineConfig, PipelineInvalid, run_pipeline
+from app.compiler import compile_sql
 from app.core.planner import plan_pipeline
 from app.core.ratelimit import RateLimiter, run_slots
 from app.datasets import get_dataset, list_datasets, list_lookups
@@ -82,9 +83,31 @@ def dataset_sample(dataset_id: str, n: int = 20) -> dict:
     return {"dataset": ds.describe(), "rows": list(itertools.islice(ds.rows(), n))}
 
 
+@router.get("/datasets/{dataset_id}/download.csv", response_class=PlainTextResponse)
+def dataset_csv(dataset_id: str) -> PlainTextResponse:
+    """Full dataset as CSV (bounded: every dataset is at most a few thousand rows).
+    NULL is written as an empty field and booleans as true/false."""
+    ds = get_dataset(dataset_id)
+    if ds is None:
+        raise HTTPException(404, f"unknown dataset '{dataset_id}'")
+    names = [f.name for f in ds.schema]
+    buf = io.StringIO()
+    writer = csv.writer(buf, lineterminator="\n")
+    writer.writerow(names)
+    for row in ds.rows():
+        writer.writerow(["" if row.get(n) is None else str(row[n]).lower() if isinstance(row.get(n), bool)
+                         else row[n] for n in names])
+    return PlainTextResponse(buf.getvalue(), media_type="text/csv", headers={
+        "Content-Disposition": f'attachment; filename="{dataset_id}.csv"',
+        "Cache-Control": "public, max-age=3600",
+    })
+
+
 @router.get("/lookups")
 def lookups() -> list[dict]:
     return list_lookups()
+
+
 
 
 @router.get("/registry")
@@ -118,6 +141,17 @@ def validate(req: ValidateRequest) -> dict:
     if len(json.dumps(req.model_dump(), default=str)) > 32_768:
         raise HTTPException(413, "pipeline draft too large")
     return plan_pipeline(req.dataset_id, [s.model_dump() for s in req.stages])
+
+
+@router.post("/compile/sql")
+def compile_to_sql(req: ValidateRequest) -> dict:
+    """Compile a draft pipeline to DuckDB SQL (generated, never executed here)."""
+    if len(json.dumps(req.model_dump(), default=str)) > 32_768:
+        raise HTTPException(413, "pipeline draft too large")
+    result = compile_sql(req.dataset_id, [s.model_dump() for s in req.stages])
+    if not result["valid"]:
+        raise HTTPException(422, {"message": "pipeline has configuration errors", "plan": result["plan"]})
+    return {k: result[k] for k in ("dialect", "sql", "setup_sql", "notes")}
 
 
 @router.post("/runs", status_code=201)

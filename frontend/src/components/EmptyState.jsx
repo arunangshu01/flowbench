@@ -1,11 +1,7 @@
 import React from "react";
 import Icon from "./Icon";
+import { STEPS } from "../lib/content";
 
-const STEPS = [
-  ["database", "Pick a source", "Seeded datasets from IoT, finance, healthcare, retail, logistics, aviation and more, including two with deliberately broken rows."],
-  ["shield", "Add stages", "Validators reject bad rows; transforms reshape, filter, and enrich. Params are checked as you type."],
-  ["inspect", "Run & inspect", "Real execution. Click any node to see its records, rejections, errors, and profile."],
-];
 
 export default function EmptyState({ onDemo, onRun, canRun, busy }) {
   return (
