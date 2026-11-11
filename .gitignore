@@ -218,3 +218,7 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Flowbench
+backend/flowbench.db*
+frontend/node_modules/
