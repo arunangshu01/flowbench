@@ -7,8 +7,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt \
-    && pip uninstall -y pytest httpx
+RUN pip install --no-cache-dir -r requirements.txt
 COPY app app
 RUN useradd --create-home --uid 10001 appuser \
     && mkdir -p /data && chown appuser /data
