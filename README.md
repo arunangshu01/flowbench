@@ -203,5 +203,19 @@ Same pattern as the portfolio, mahakal and doppel, in a dedicated GCP project:
 - Run history and schedules are stored in the container and **reset on every
   deploy or instance restart**.
 
-Step-by-step manual setup: [docs/deploy-gcp.md](docs/deploy-gcp.md). Status:
-deployment files are in the repo; no cloud resources have been created yet.
+Step-by-step manual setup: [docs/deploy-gcp.md](docs/deploy-gcp.md).
+
+| Setting | Provisioned value |
+| --- | --- |
+| Dedicated GCP project | `flowbench-111126` (project number `251493600324`) |
+| Firebase Hosting site | `flowbench-app` (https://flowbench-app.web.app) |
+| Cloud Run service / region | `flowbench-api` / `asia-south1` |
+| Runtime / deployer identities | `flowbench-run` (no roles) / `flowbench-deployer` (Cloud Run admin, Hosting admin, registry writer on `flowbench`) |
+| Artifact Registry | `flowbench` Docker repository in `asia-south1` |
+| WIF provider | `projects/251493600324/locations/global/workloadIdentityPools/github/providers/flowbench-repo` |
+| OIDC subject | `repo:arunangshu01@22813216/flowbench@1453682436:environment:production` |
+| GitHub | `production` environment (main only, reviewer `arunangshu01`, no admin bypass); `Protect main` ruleset (PR, resolved conversations, up-to-date branch, both CI checks, no force push/deletion, no bypass) |
+
+Billing and a project-scoped budget were configured manually. No secrets or
+service-account keys exist. Each deployment still waits for the production
+approval in GitHub Actions.
