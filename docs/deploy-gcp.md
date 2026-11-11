@@ -208,7 +208,7 @@ doppel's: target `main`, require a pull request (0 approvals for a solo
 maintainer), require conversation resolution, require branches to be up to
 date, require the status checks **Backend tests** and **Frontend tests and
 build**, block force pushes and deletion, no bypass actors. Enable secret
-scanning, push protection and Dependabot alerts.
+scanning and push protection. Dependabot is optional; it is currently off for this repository.
 
 ### 9. Merge, approve, deploy
 

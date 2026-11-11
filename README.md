@@ -252,7 +252,7 @@ Step-by-step manual setup: [docs/deploy-gcp.md](docs/deploy-gcp.md).
 | `flowbench health alerts` channel | email to `arunangshu01@gmail.com` |
 | `flowbench operations` dashboard | probe pass fraction, requests/sec by response class, p95 latency, CPU utilization, instance count (built-in metrics only) |
 | Artifact Registry cleanup | keep the 10 most recent images, delete images older than 30 days; **dry-run mode**, so nothing is deleted until it is switched off |
-| Dependabot | security alerts and automatic security-fix PRs |
+| Repository security | secret scanning and push protection on; Dependabot alerts and security-fix PRs deliberately off (dependencies are updated manually) |
 
 Missing telemetry alone does not trigger the alert, and probes add a small
 amount of traffic and logs. To enable real image cleanup after reviewing the
