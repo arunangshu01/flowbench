@@ -31,7 +31,7 @@ def test_prefix_is_consistent_everywhere():
 
 def test_hosting_and_service_names():
     assert re.fullmatch(r"[a-z0-9][a-z0-9-]+", FIREBASE["site"])
-    assert f"https://{FIREBASE['site']}.web.app" in DEPLOY
+    assert "url: https://flowbench.arunangshupramanik.com" in DEPLOY
     assert "SERVICE: flowbench-api" in DEPLOY
     assert "flowbench-run@${PROJECT_ID}.iam.gserviceaccount.com" in DEPLOY
     assert '"flowbench-deployer@${PROJECT_ID}.iam.gserviceaccount.com"' in DEPLOY
