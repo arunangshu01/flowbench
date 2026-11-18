@@ -6,8 +6,8 @@
 
 <p align="center">
   <b>Build a pipeline. Break it. Inspect every row.</b><br />
-  <a href="https://flowbench-app.web.app">Live demo</a> ·
-  <a href="https://flowbench-app.web.app/app?demo=strict-sensor-ingest">Run the faulty-data demo</a> ·
+  <a href="https://flowbench.arunangshupramanik.com">Live demo</a> ·
+  <a href="https://flowbench.arunangshupramanik.com/app?demo=strict-sensor-ingest">Run the faulty-data demo</a> ·
   <a href="docs/deploy-gcp.md">Deployment guide</a>
 </p>
 
@@ -235,7 +235,7 @@ Step-by-step manual setup: [docs/deploy-gcp.md](docs/deploy-gcp.md).
 | Setting | Provisioned value |
 | --- | --- |
 | Dedicated GCP project | `flowbench-111126` (project number `251493600324`) |
-| Firebase Hosting site | `flowbench-app` (https://flowbench-app.web.app) |
+| Firebase Hosting site | `flowbench-app` (https://flowbench-app.web.app, custom domain https://flowbench.arunangshupramanik.com) |
 | Cloud Run service / region | `flowbench-api` / `asia-south1` |
 | Runtime / deployer identities | `flowbench-run` (no roles) / `flowbench-deployer` (Cloud Run admin, Hosting admin, registry writer on `flowbench`) |
 | Artifact Registry | `flowbench` Docker repository in `asia-south1` |

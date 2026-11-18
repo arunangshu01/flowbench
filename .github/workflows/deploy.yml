@@ -32,7 +32,7 @@ jobs:
     timeout-minutes: 30
     environment:
       name: production
-      url: https://flowbench-app.web.app
+      url: https://flowbench.arunangshupramanik.com
     permissions:
       contents: read
       id-token: write
